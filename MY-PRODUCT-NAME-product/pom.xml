@@ -5,6 +5,10 @@
   <version>10.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
+  <properties>
+    <variables.yaml.file>../MY-PRODUCT-NAME/config/variables.yaml</variables.yaml.file>
+  </properties>
+
   <build>
     <plugins>
       <plugin>
@@ -39,7 +43,7 @@
                   <fileset dir="../../" includes="doc/**" />
                 </copy>
                 <copy file="README.md" tofile="${project.build.directory}/README.md" />
-                <loadfile property="variables.yaml" srcFile="${variables.yaml.file}" encoding="UTF-8" />
+                <loadfile property="variables.yaml" srcFile="${variables.yaml.file}" encoding="UTF-8" failonerror="false" />
                 <replace file="${project.build.directory}/README.md" token="@variables.yaml@" value="${variables.yaml}" />
               </target>
             </configuration>
