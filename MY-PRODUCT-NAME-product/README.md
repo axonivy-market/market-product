@@ -9,4 +9,7 @@ YOUR DEMO DESCRIPTION GOES HERE
 ## Setup
 
 YOUR SETUP DESCRIPTION GOES HERE
+
+```
 @variables.yaml@
+```
