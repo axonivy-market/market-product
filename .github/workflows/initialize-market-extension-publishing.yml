@@ -50,16 +50,12 @@ jobs:
       - name: Compute variables
         id: vars
         run: |
-          repoName="${{ github.event.repository.name }}"
           productName="${{ github.event.inputs.productName }}"
           productType="${{ github.event.inputs.productType }}"
 
           # Build groupId: remove productType suffix, replace '-' with '.'
           groupId="com.axonivy.$productType.${productName/%-${productType}}"
           groupId="${groupId//-/.}"
-
-          # Build artifactId
-          artifactId="$repoName $productType"
 
           # Combined name for README file (e.g. "MyProduct Connector")
           displayedType="$(tr '[:lower:]' '[:upper:]' <<< ${productType:0:1})${productType:1}"
@@ -68,22 +64,21 @@ jobs:
           echo "productName=$productName" >> $GITHUB_OUTPUT
           echo "productType=$productType" >> $GITHUB_OUTPUT
           echo "groupId=$groupId" >> $GITHUB_OUTPUT
-          echo "artifactId=$artifactId" >> $GITHUB_OUTPUT
           echo "displayName=$displayName" >> $GITHUB_OUTPUT
 
       - name: Update placeholders in file contents
         run: |
           productName="${{ steps.vars.outputs.productName }}"
           groupId="${{ steps.vars.outputs.groupId }}"
-          artifactId="${{ steps.vars.outputs.artifactId }}"
+          repoName="${{ github.event.repository.name }}"
           displayName="${{ steps.vars.outputs.displayName }}"
           inputVersion="${{ github.event.inputs.version }}"
 
           find . -type f -not -path "./.git/*" -not -path "./.github/*" \
             -exec sed -i \
               -e "s|# MY-PRODUCT-NAME|# $displayName|g" \
-              -e "s|\"MY-PRODUCT-NAME\"|\"$artifactId\"|g" \
-              -e "s|MY-PRODUCT-NAME|$artifactId|g" \
+              -e "s|\"MY-PRODUCT-NAME\"|\"$repoName\"|g" \
+              -e "s|MY-PRODUCT-NAME|$repoName|g" \
               -e "s|<version>12.0.0-SNAPSHOT</version>|<version>$inputVersion-SNAPSHOT</version>|g" \
               -e "s|<project.build.plugin.version>.*</project.build.plugin.version>|<project.build.plugin.version>$inputVersion</project.build.plugin.version>|g" \
               -e "s|<tester.version>.*</tester.version>|<tester.version>$inputVersion</tester.version>|g" \
