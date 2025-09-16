@@ -18,7 +18,6 @@ on:
       version:
         description: 'Ivy version used for development (e.g. 12.0.0)'
         required: true
-        type: number
 
 permissions:
   contents: write
@@ -38,6 +37,15 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 21
+
+      - name: Validate Ivy version format
+        run: |
+          inputVersion="${{ github.event.inputs.version }}"
+          if ! [[ "$inputVersion" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT)?$ ]]; then
+            echo "❌ Invalid Ivy version format: $inputVersion"
+            echo "Expected format: x.y.z or x.y.z-SNAPSHOT"
+            exit 1
+          fi
       
       - name: Compute variables
         id: vars
@@ -92,6 +100,7 @@ jobs:
             -exec bash -c 'f="{}"; mv "$f" "$(dirname "$f")/$(basename "$f" | sed "s/MY-PRODUCT-NAME/'"$productName"'/g")"' \;
 
       - name: Commit changes to master and remove initialization workflow
+        if: success()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
