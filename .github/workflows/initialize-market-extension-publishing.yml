@@ -60,7 +60,7 @@ jobs:
 
       - name: Replace placeholders in file and folder names
         run: |
-          productName=""${{ github.event.repository.name }}"
+          productName="${{ github.event.repository.name }}"
 
           # Traverse deepest paths first to avoid conflicts
           find . -depth -name "*MY-PRODUCT-NAME*" \
