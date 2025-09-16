@@ -54,7 +54,8 @@ jobs:
           productType="${{ github.event.inputs.productType }}"
 
           # Build groupId: remove productType suffix, replace '-' with '.'
-          groupId="com.axonivy.$productType.${productName/%-${productType}}"
+          lowerCaseProductName=$(echo "$productName" | tr '[:upper:]' '[:lower:]')
+          groupId="com.axonivy.$productType.${lowerCaseProductName/%-${productType}}"
           groupId="${groupId//-/.}"
 
           # Combined name for README file (e.g. "MyProduct Connector")
