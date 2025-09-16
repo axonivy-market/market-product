@@ -13,7 +13,7 @@
         <include>product.json</include>
         <include>openapi.json</include>
         <include>**/*.png</include>
-		<include>**/*.jpg</include>
+        <include>**/*.jpg</include>
         <include>**/*.jpeg</include>
         <include>**/*.gif</include>
         <include>**/*.svg</include>
