@@ -21,7 +21,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   initialize-market-extension:
@@ -38,25 +37,51 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 21
-
-      - name: Update placeholders
+      
+      - name: Compute variables
+        id: vars
         run: |
-          productName="${{ github.event.repository.name }}"
+          repoName="${{ github.event.repository.name }}"
+          productName="${{ github.event.inputs.productName }}"
           productType="${{ github.event.inputs.productType }}"
-          # Remove productType suffix, then replace dashes with dots
+
+          # Build groupId: remove productType suffix, replace '-' with '.'
           groupId="com.axonivy.$productType.${productName/%-${productType}}"
           groupId="${groupId//-/.}"
 
-          # Perform replacements
+          # Combined name for README file (e.g. "MyProduct (connector)")
+          displayName="$productName ($productType)"
+
+          echo "productName=$productName" >> $GITHUB_OUTPUT
+          echo "productType=$productType" >> $GITHUB_OUTPUT
+          echo "groupId=$groupId" >> $GITHUB_OUTPUT
+          echo "displayName=$displayName" >> $GITHUB_OUTPUT
+
+      - name: Read current project version
+        id: version
+        run: |
+          currentVersion=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "currentVersion=$currentVersion" >> $GITHUB_OUTPUT
+
+      - name: Update placeholders in file contents
+        run: |
+          productName="${{ steps.vars.outputs.productName }}"
+          groupId="${{ steps.vars.outputs.groupId }}"
+          displayName="${{ steps.vars.outputs.displayName }}"
+          inputVersion="${{ github.event.inputs.version }}"
+          cleanVersion=$(echo "$inputVersion" | sed 's/-SNAPSHOT$//')
+
           find . -type f -not -path "./.git/*" -not -path "./.github/*" \
             -exec sed -i \
-              -e "s|# MY-PRODUCT-NAME|# ${{ github.event.inputs.productName }}|g" \
+              -e "s|# MY-PRODUCT-NAME|# $displayName|g" \
               -e "s|\"MY-PRODUCT-NAME\"|\"${{ github.event.inputs.productName }}\"|g" \
               -e "s|MY-PRODUCT-NAME|${productName}|g" \
-              -e "s|<version>12.0.0-SNAPSHOT</version>|<version>${{ github.event.inputs.version }}-SNAPSHOT</version>|g" \
               -e "s|MY-GROUP-ID|$groupId|g" \
               -e "s|REPO-NAME|${productName}|g" \
               -e "s|<groupId>com.axonivy.market</groupId>|<groupId>$groupId</groupId>|g" {} +
+
+          # Update version only in root pom.xml
+          sed -i "s|<version>${{ steps.version.outputs.currentVersion }}</version>|<version>${cleanVersion}-SNAPSHOT</version>|" pom.xml
 
       - name: Replace placeholders in file and folder names
         run: |
@@ -66,11 +91,11 @@ jobs:
           find . -depth -name "*MY-PRODUCT-NAME*" \
             -exec bash -c 'f="{}"; mv "$f" "$(dirname "$f")/$(basename "$f" | sed "s/MY-PRODUCT-NAME/'"$productName"'/g")"' \;
 
-      - name: Commit changes to master
+      - name: Commit changes to master and remove initialization workflow
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           rm .github/workflows/initialize-market-extension-publishing.yml || true
           git add .
-          git commit -m "Initialize new product: ${{ github.event.inputs.productName }} v${{ github.event.inputs.version }}" || echo "No changes to commit"
+          git commit -m "Initialize new product: ${{ steps.vars.outputs.productName }} v${{ github.event.inputs.version }}" || echo "No changes to commit"
           git push origin master
