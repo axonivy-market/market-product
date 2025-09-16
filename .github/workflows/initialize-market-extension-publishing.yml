@@ -49,24 +49,24 @@ jobs:
           groupId="com.axonivy.$productType.${productName/%-${productType}}"
           groupId="${groupId//-/.}"
 
-          # Combined name for README file (e.g. "MyProduct (connector)")
-          displayName="$productName ($productType)"
+          # Build artifactId
+          artifactId="$repoName $productType"
+
+          # Combined name for README file (e.g. "MyProduct Connector")
+          displayedType="$(tr '[:lower:]' '[:upper:]' <<< ${productType:0:1})${productType:1}"
+          displayName="$productName $displayedType"
 
           echo "productName=$productName" >> $GITHUB_OUTPUT
           echo "productType=$productType" >> $GITHUB_OUTPUT
           echo "groupId=$groupId" >> $GITHUB_OUTPUT
+          echo "artifactId=$artifactId" >> $GITHUB_OUTPUT
           echo "displayName=$displayName" >> $GITHUB_OUTPUT
-
-      - name: Read current project version
-        id: version
-        run: |
-          currentVersion=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          echo "currentVersion=$currentVersion" >> $GITHUB_OUTPUT
 
       - name: Update placeholders in file contents
         run: |
           productName="${{ steps.vars.outputs.productName }}"
           groupId="${{ steps.vars.outputs.groupId }}"
+          artifactId="${{ steps.vars.outputs.artifactId }}"
           displayName="${{ steps.vars.outputs.displayName }}"
           inputVersion="${{ github.event.inputs.version }}"
           cleanVersion=$(echo "$inputVersion" | sed 's/-SNAPSHOT$//')
@@ -74,14 +74,12 @@ jobs:
           find . -type f -not -path "./.git/*" -not -path "./.github/*" \
             -exec sed -i \
               -e "s|# MY-PRODUCT-NAME|# $displayName|g" \
-              -e "s|\"MY-PRODUCT-NAME\"|\"${{ github.event.inputs.productName }}\"|g" \
-              -e "s|MY-PRODUCT-NAME|${productName}|g" \
+              -e "s|\"MY-PRODUCT-NAME\"|\"$artifactId\"|g" \
+              -e "s|MY-PRODUCT-NAME|$artifactId|g" \
+              -e "s|<version>12.0.0-SNAPSHOT</version>|<version>${{ github.event.inputs.version }}-SNAPSHOT</version>|g" \
               -e "s|MY-GROUP-ID|$groupId|g" \
               -e "s|REPO-NAME|${productName}|g" \
               -e "s|<groupId>com.axonivy.market</groupId>|<groupId>$groupId</groupId>|g" {} +
-
-          # Update version only in root pom.xml
-          sed -i "s|<version>${{ steps.version.outputs.currentVersion }}</version>|<version>${cleanVersion}-SNAPSHOT</version>|" pom.xml
 
       - name: Replace placeholders in file and folder names
         run: |

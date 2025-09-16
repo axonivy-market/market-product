@@ -7,9 +7,7 @@
   <version>12.0.0-SNAPSHOT</version>
   <packaging>iar-integration-test</packaging>
   <properties>
-    <project.build.plugin.version>12.0.0</project.build.plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <tester.version>12.0.1</tester.version>
   </properties>
   <pluginRepositories>
     <!-- Snapshot releases are available via sonatype.org -->
@@ -40,13 +38,11 @@
     <dependency>
     	<groupId>com.axonivy.ivy.test</groupId>
     	<artifactId>unit-tester</artifactId>
-    	<version>${tester.version}</version>
     	<scope>test</scope>
     </dependency>
     <dependency>
     	<groupId>com.axonivy.ivy.webtest</groupId>
     	<artifactId>web-tester</artifactId>
-    	<version>${tester.version}</version>
     	<scope>test</scope>
     </dependency>
   </dependencies>
@@ -56,7 +52,6 @@
       <plugin>
         <groupId>com.axonivy.ivy.ci</groupId>
         <artifactId>project-build-plugin</artifactId>
-        <version>${project.build.plugin.version}</version>
         <extensions>true</extensions>
       </plugin>
     </plugins>
