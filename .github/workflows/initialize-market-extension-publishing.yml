@@ -169,10 +169,6 @@ jobs:
           version="${{ steps.ivy.outputs.version }}"
           convert_to_version="${{ steps.ivy.outputs.convert_to_version }}"
 
-          if [[ "$version" == 12.* ]]; then
-            echo "Ivy 12 detected: switching to Temurin 17"
-            export JAVA_HOME="$JAVA_HOME_17_X64"
-          fi
           export IVY_JAVA_HOME="$JAVA_HOME"
           export PATH="$JAVA_HOME/bin:$PATH"
 
